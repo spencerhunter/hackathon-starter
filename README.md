@@ -6,7 +6,7 @@ Hackathon Starter [![Dependency Status](https://david-dm.org/sahat/hackathon-sta
 
 **Live Demo**: http://hackathonstarter.herokuapp.com
 
-Jump to [What's new in 3.2.0?](#changelog)
+Jump to [What's new in 3.3.1?](#changelog)
 
 A boilerplate for **Node.js** web applications.
 
@@ -21,9 +21,6 @@ I also tried to make it as **generic** and **reusable** as possible to cover mos
 without being too specific. In the worst case you can use this as a learning guide for your projects,
 if for example you are only interested in **Sign in with Google** authentication and nothing else.
 
-Chances are you do not need all authentication methods or API examples. As of **Hackathon Starter 2.1**
-it is possible to selectively check which authentication methods you need by running `node setup.js`.
-
 <h4 align="center">Modern Theme</h4>
 
 ![](https://lh6.googleusercontent.com/-KQTmCFNK6MM/U7OZpznjDuI/AAAAAAAAERc/h3jR27Uy1lE/w1366-h1006-no/Screenshot+2014-07-02+01.32.22.png)
@@ -35,10 +32,6 @@ it is possible to selectively check which authentication methods you need by run
 <h4 align="center">API Examples</h4>
 
 ![](https://lh5.googleusercontent.com/-BJD2wK8CvC8/VLodBsyL-NI/AAAAAAAAEx0/SafE6o_qq_I/w1818-h1186-no/Screenshot%2B2015-01-17%2B00.25.49.png)
-
-<h4 align="center">Hackathon Starter Generator</h4>
-
-![](https://lh4.googleusercontent.com/-ncBLUzq6czE/U3KkYE0UXsI/AAAAAAAAEEM/YsZeIqOlZg8/w1288-h874-no/Screenshot+2014-05-13+19.01.15.png)
 
 Table of Contents
 -----------------
@@ -110,14 +103,15 @@ The easiest way to get started is to clone the repository:
 
 ```bash
 # Get the latest snapshot
-$ git clone https://github.com/sahat/hackathon-starter.git myproject
-$ cd myproject
-$ git remote rm origin
+git clone --depth=1 https://github.com/sahat/hackathon-starter.git myproject
+
+# Change directory
+cd myproject
 
 # Install NPM dependencies
-$ npm install
+npm install
 
-$ node app.js
+node app.js
 ```
 
 **Note:** I highly recommend installing [Nodemon](https://github.com/remy/nodemon).
@@ -376,7 +370,6 @@ List of Packages
 | cookie-parser                   | Express 4 middleware.                                                 |
 | express-session                 | Express 4 middleware.                                                 |
 | morgan                          | Express 4 middleware.                                                 |
-| multer                          | Express 4 middleware.                                                 |
 | compression                     | Express 4 middleware.                                                 |
 | errorhandler                    | Express 4 middleware.                                                 |
 | method-override                 | Express 4 middleware.                                                 |
@@ -1146,6 +1139,17 @@ Also, be sure to check out the [Jump-start your hackathon efforts with DevOps Se
 
 Changelog
 ---------
+
+### 3.3.1 (December 25, 2015)
+- Use `connect-mongo` ES5 fallback for backward-compatibility with Node.js version `< 4.0`.
+
+### 3.3.0 (December 19, 2015)
+- Steam authorization via OpenID.
+- Code style update. (No longer use "one-liners" without braces)
+- Updated LinkedIn scope from `r_fullprofile` to `r_basicprofile` due to API changes.
+- Added LICENSE file.
+- Removed [Bitcore](https://bitcore.io/) example due to installation issues on Windows 10.
+
 
 ### 3.2.0 (October 19, 2015)
 - Added Google Analytics script.

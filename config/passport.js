@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var passport = require('passport');
+var request = require('request');
 var InstagramStrategy = require('passport-instagram').Strategy;
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
@@ -7,6 +8,7 @@ var TwitterStrategy = require('passport-twitter').Strategy;
 var GitHubStrategy = require('passport-github').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
+var OpenIDStrategy = require('passport-openid').Strategy;
 var OAuthStrategy = require('passport-oauth').OAuthStrategy;
 var OAuth2Strategy = require('passport-oauth').OAuth2Strategy;
 
@@ -48,8 +50,9 @@ passport.use(new InstagramStrategy(secrets.instagram,function(req, accessToken, 
     });
   } else {
     User.findOne({ instagram: profile.id }, function(err, existingUser) {
-      if (existingUser) return done(null, existingUser);
-
+      if (existingUser) {
+        return done(null, existingUser);
+      }
       var user = new User();
       user.instagram = profile.id;
       user.tokens.push({ kind: 'instagram', accessToken: accessToken });
@@ -73,7 +76,9 @@ passport.use(new InstagramStrategy(secrets.instagram,function(req, accessToken, 
 passport.use(new LocalStrategy({ usernameField: 'email' }, function(email, password, done) {
   email = email.toLowerCase();
   User.findOne({ email: email }, function(err, user) {
-    if (!user) return done(null, false, { message: 'Email ' + email + ' not found'});
+    if (!user) {
+      return done(null, false, { message: 'Email ' + email + ' not found'});
+    }
     user.comparePassword(password, function(err, isMatch) {
       if (isMatch) {
         return done(null, user);
@@ -124,7 +129,9 @@ passport.use(new FacebookStrategy(secrets.facebook, function(req, accessToken, r
     });
   } else {
     User.findOne({ facebook: profile.id }, function(err, existingUser) {
-      if (existingUser) return done(null, existingUser);
+      if (existingUser) {
+        return done(null, existingUser);
+      }
       User.findOne({ email: profile._json.email }, function(err, existingEmailUser) {
         if (existingEmailUser) {
           req.flash('errors', { msg: 'There is already an account using this email address. Sign in to that account and link it with Facebook manually from Account Settings.' });
@@ -173,7 +180,9 @@ passport.use(new GitHubStrategy(secrets.github, function(req, accessToken, refre
     });
   } else {
     User.findOne({ github: profile.id }, function(err, existingUser) {
-      if (existingUser) return done(null, existingUser);
+      if (existingUser) {
+        return done(null, existingUser);
+      }
       User.findOne({ email: profile._json.email }, function(err, existingEmailUser) {
         if (existingEmailUser) {
           req.flash('errors', { msg: 'There is already an account using this email address. Sign in to that account and link it with GitHub manually from Account Settings.' });
@@ -221,7 +230,9 @@ passport.use(new TwitterStrategy(secrets.twitter, function(req, accessToken, tok
 
   } else {
     User.findOne({ twitter: profile.id }, function(err, existingUser) {
-      if (existingUser) return done(null, existingUser);
+      if (existingUser) {
+        return done(null, existingUser);
+      }
       var user = new User();
       // Twitter will not provide an email address.  Period.
       // But a person’s twitter username is guaranteed to be unique
@@ -264,7 +275,9 @@ passport.use(new GoogleStrategy(secrets.google, function(req, accessToken, refre
     });
   } else {
     User.findOne({ google: profile.id }, function(err, existingUser) {
-      if (existingUser) return done(null, existingUser);
+      if (existingUser) {
+        return done(null, existingUser);
+      }
       User.findOne({ email: profile.emails[0].value }, function(err, existingEmailUser) {
         if (existingEmailUser) {
           req.flash('errors', { msg: 'There is already an account using this email address. Sign in to that account and link it with Google manually from Account Settings.' });
@@ -312,7 +325,9 @@ passport.use(new LinkedInStrategy(secrets.linkedin, function(req, accessToken, r
     });
   } else {
     User.findOne({ linkedin: profile.id }, function(err, existingUser) {
-      if (existingUser) return done(null, existingUser);
+      if (existingUser) {
+        return done(null, existingUser);
+      }
       User.findOne({ email: profile._json.emailAddress }, function(err, existingEmailUser) {
         if (existingEmailUser) {
           req.flash('errors', { msg: 'There is already an account using this email address. Sign in to that account and link it with LinkedIn manually from Account Settings.' });
@@ -400,10 +415,42 @@ passport.use('venmo', new OAuth2Strategy({
 ));
 
 /**
+ * Steam API OpenID.
+ */
+passport.use(new OpenIDStrategy(secrets.steam, function(identifier, done) {
+  var steamId = identifier.match(/\d+$/)[0];
+  var profileURL = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key='+secrets.steam.apiKey+'&steamids='+steamId;
+
+  User.findOne({ steam: steamId }, function(err, existingUser) {
+    if (existingUser) return done(err, existingUser);
+    request(profileURL, function(error, response, body) {
+      if (!error && response.statusCode == 200) {
+        var data = JSON.parse(body);
+        var profile = data.response.players[0];
+
+        var user = new User();
+        user.steam = steamId;
+        user.email = steamId + '@steam.com'; // steam does not disclose emails, prevent duplicate keys
+        user.tokens.push({ kind: 'steam', accessToken: steamId });
+        user.profile.name = profile.personaname;
+        user.profile.picture = profile.avatarmedium;
+        user.save(function(err) {
+          done(err, user);
+        });
+      } else {
+        done(error, null);
+      }
+    });
+  });
+}));
+
+/**
  * Login Required middleware.
  */
 exports.isAuthenticated = function(req, res, next) {
-  if (req.isAuthenticated()) return next();
+  if (req.isAuthenticated()) {
+    return next();
+  }
   res.redirect('/login');
 };
 
