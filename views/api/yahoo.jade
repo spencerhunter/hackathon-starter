@@ -21,10 +21,26 @@ block content
     strong  10007
   .alert.alert-info
     p It is currently
-     strong  #{condition.temp}
+     strong  #{weather.condition.temp}
      |  degrees in
-     strong  #{location.city}, #{location.region}
+     strong  #{weather.location.city}, #{weather.location.region}
      | .
 
-  h3 YQL Query
-  pre SELECT * FROM weather.forecast WHERE (location = 10007)
+  hr
+  p.lead Yahoo Finance API
+  .row
+    for quote in quotes
+      .col-sm-3
+        dl
+          dt Symbol
+          dd= quote.Symbol
+          dt Name
+          dd= quote.Name
+          dt Last Traded Price
+          dd= quote.LastTradePriceOnly
+          dt Change
+            dd= quote.Change
+          dt Day's Range
+          dd= quote.DaysRange
+          dt Market Capitalization
+          dd= quote.MarketCapitalization
